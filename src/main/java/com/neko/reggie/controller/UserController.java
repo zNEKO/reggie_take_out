@@ -76,6 +76,7 @@ public class UserController {
             httpSession.setAttribute("user", user.getId());
 
             return R.success(user);
+            
         }
 
         return R.error("登录失败");
