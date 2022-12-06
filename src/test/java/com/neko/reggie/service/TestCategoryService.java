@@ -19,5 +19,4 @@ public class TestCategoryService {
         list.forEach(System.out::println);
     }
 
-
 }

@@ -47,8 +47,11 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public R<User> login(@RequestBody Map map, HttpSession httpSession) {
+    public R<User> login(@RequestBody Map map, HttpServletRequest request) {
         log.info("loginMap = {}", map.toString());
+
+        // 获取Session域
+        HttpSession httpSession = request.getSession();
 
         // 获取手机号
         String phone = map.get("phone").toString();
@@ -67,16 +70,16 @@ public class UserController {
 
             if (user == null) {
                 // 如果user为null，则说明为新用户，需为该用户注册
-                User newUser = new User();
-                newUser.setPhone(phone);
-                newUser.setStatus(1);
-                userService.save(newUser);
+                user = new User();
+                user.setPhone(phone);
+                user.setStatus(1);
+                userService.save(user);
             }
 
             httpSession.setAttribute("user", user.getId());
 
             return R.success(user);
-            
+
         }
 
         return R.error("登录失败");
@@ -84,9 +87,8 @@ public class UserController {
 
     @PostMapping("/loginout")
     public R<String> logout(HttpServletRequest request) {
-
         request.getSession().removeAttribute("user");
-
+        log.info("退出当前用户成功......");
         return R.success("退出当前用户成功");
     }
 

@@ -3,7 +3,9 @@ package com.neko.reggie.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.neko.reggie.common.R;
+import com.neko.reggie.dto.OrdersDto;
 import com.neko.reggie.entity.AddressBook;
+import com.neko.reggie.entity.Orders;
 import com.neko.reggie.service.AddressBookService;
 import com.neko.reggie.utils.BaseContext;
 import lombok.extern.slf4j.Slf4j;
@@ -61,11 +63,15 @@ public class AddressBookController {
         return R.success(addressBook);
     }
 
-    // 查询默认地址
+    /**
+     * 查询默认地址
+     * @param
+     * @return
+     */
     @GetMapping("/default")
-    public R<AddressBook> getDefault(@RequestBody Long id) {
+    public R<AddressBook> getDefault() {
         LambdaQueryWrapper<AddressBook> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(AddressBook::getUserId, id);
+        queryWrapper.eq(AddressBook::getUserId, BaseContext.getCurrentId());
         queryWrapper.eq(AddressBook::getIsDefault, 1);
 
         AddressBook addressBook = addressBookService.getOne(queryWrapper);
@@ -77,6 +83,11 @@ public class AddressBookController {
         return R.success(addressBook);
     }
 
+    /**
+     * 根据指定id查询地址信息
+     * @param id
+     * @return
+     */
     @GetMapping("/{id}")
     public R<AddressBook> getById(@PathVariable Long id) {
         log.info("id = {}", id);
@@ -107,5 +118,23 @@ public class AddressBookController {
         addressBookService.updateById(addressBook);
 
         return R.success(addressBook);
+    }
+
+    /**
+     * 修改当前登录用户地址
+     * @return
+     */
+    @PutMapping
+    public R<String> updateAddress(@RequestBody AddressBook addressBook) {
+
+        Long currentId = BaseContext.getCurrentId();
+
+        log.info("currentId = {}, addressBook = {}", currentId, addressBook);
+
+        LambdaUpdateWrapper<AddressBook> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(AddressBook::getId, currentId);
+        addressBookService.update(addressBook, updateWrapper);
+
+        return R.success("修改地址成功");
     }
 }

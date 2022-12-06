@@ -44,7 +44,6 @@ public class LoginCheckFilter implements Filter {
                 "/front/**",
                 // 前台用户登录
                 "/user/login",
-
                 "/common/**",
                 // 发送验证码
                 "/user/sendMsg"
@@ -80,7 +79,7 @@ public class LoginCheckFilter implements Filter {
 
         // 如果未登录，则返回未登录结果，通过输出流的方式向客户端响应数据
         log.info("用户未登录");
-        response.getWriter().write(JSON.toJSONString(R.error("NOTLOGIN")));
+        response.getWriter().write(JSON.toJSONString(R.error("NOT LOGIN")));
     }
 
     private Boolean check(String[] urls, String requestURI) {

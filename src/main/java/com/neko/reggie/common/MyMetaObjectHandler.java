@@ -8,8 +8,8 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
-@Component
 @Slf4j
+@Component
 public class MyMetaObjectHandler implements MetaObjectHandler {
 
     @Override
@@ -30,3 +30,4 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
         metaObject.setValue("updateUser", BaseContext.getCurrentId());
     }
 }
+

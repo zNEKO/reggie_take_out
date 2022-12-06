@@ -1,6 +1,7 @@
 package com.neko.reggie.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.neko.reggie.common.R;
 import com.neko.reggie.dto.DishDto;
@@ -39,8 +40,8 @@ public class DishController {
      * @return
      */
     @GetMapping("/page")
-    public R<Page> page(int page, int pageSize, String name) {
-        log.info("page = {}, pageSize = {}", page, pageSize);
+    public R<Page<DishDto>> page(int page, int pageSize, String name) {
+        log.info("page = {}, pageSize = {}, name = {}", page, pageSize, name);
 
         // 构建分页构造器对象
         Page<Dish> dishPageInfo = new Page<>(page, pageSize);
@@ -49,12 +50,12 @@ public class DishController {
         // 创建条件构造器
         LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper<>();
         // 添加查询条件
-        queryWrapper.eq(name != null, Dish::getName, name);
+        queryWrapper.like(name != null, Dish::getName, name);
         // 添加排序条件
         queryWrapper.orderByDesc(Dish::getUpdateTime);
 
         // 执行分页查询
-        dishService.page(dishPageInfo);
+        dishService.page(dishPageInfo, queryWrapper);
 
         // 对象拷贝
         List<Dish> records = dishPageInfo.getRecords();
@@ -62,6 +63,7 @@ public class DishController {
         List<DishDto> list = records.stream().map(item -> {
             DishDto dishDto = new DishDto();
 
+            // 将item中属性的值复制到dishDto中
             BeanUtils.copyProperties(item, dishDto);
 
             // 获取分类ID
@@ -79,6 +81,7 @@ public class DishController {
 
         // 往DishDto实体类中设置菜品信息和菜品分类信息
         dishFlavorPageInfo.setRecords(list);
+        dishFlavorPageInfo.setTotal(dishPageInfo.getTotal());
 
         return R.success(dishFlavorPageInfo);
     }
@@ -143,7 +146,7 @@ public class DishController {
         // 添加查询条件
         queryWrapper.eq(dish.getCategoryId() != null, Dish::getCategoryId, dish.getCategoryId());
         // 查询起售状态（status = 1）的菜品
-        queryWrapper.eq(dish.getStatus() != null, Dish::getStatus, 1);
+        queryWrapper.eq(Dish::getStatus, 1);
 
         // 添加排序条件
         queryWrapper.orderByDesc(Dish::getUpdateTime).orderByAsc(Dish::getSort);
@@ -154,6 +157,8 @@ public class DishController {
         List<DishDto> dishDtoList = dishList.stream().map((item) -> {
             // 此item为Dish实体类
             DishDto dishDto = new DishDto();
+            BeanUtils.copyProperties(item, dishDto);
+
             Category category = categoryService.getById(item.getCategoryId());
             if (category != null) {
                 // dishDto设置菜品分类名称
@@ -191,14 +196,16 @@ public class DishController {
     public R<String> haltSales(@PathVariable int status, @RequestParam List<Long> ids) {
         log.info("status = {}, ids = {}", status, ids);
 
-        Dish dish = new Dish();
-        dish.setStatus(status);
+        for (Long id : ids) {
+            // ========================== 方式一 ==================================
+            // 设置修改菜品状态信息
+            LambdaUpdateWrapper<Dish> updateWrapper = new LambdaUpdateWrapper<>();
+            updateWrapper.eq(Dish::getId, id);
+            updateWrapper.set(Dish::getStatus, status);
+            // 执行修改
+            dishService.update(updateWrapper);
+        }
 
-        LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Dish::getId, ids);
-        queryWrapper.setEntity(dish);
-
-        dishService.update(queryWrapper);
 
         return R.success("停售该菜品成功");
     }

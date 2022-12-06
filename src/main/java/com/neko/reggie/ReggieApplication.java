@@ -12,9 +12,13 @@ import org.springframework.boot.web.servlet.ServletComponentScan;
 @MapperScan("com.neko.reggie.mapper")
 // Filter
 @ServletComponentScan
-public class ReggieApplication {
+public class ReggieApplication{
     public static void main(String[] args) {
+//        new SpringApplicationBuilder()
+//                .sources(ReggieApplication.class)
+//                .run(args);
         SpringApplication.run(ReggieApplication.class);
         log.info("项目启动成功......");
     }
+
 }
