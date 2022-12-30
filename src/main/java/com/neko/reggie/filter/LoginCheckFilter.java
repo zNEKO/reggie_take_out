@@ -16,7 +16,7 @@ import java.io.IOException;
 @WebFilter(filterName = "loginCheckFilter", urlPatterns = "/*")
 public class LoginCheckFilter implements Filter {
 
-    // 路劲匹配器，支持通配符
+    // 路径匹配器，支持通配符
     public static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
 
     @Override
@@ -50,10 +50,10 @@ public class LoginCheckFilter implements Filter {
         };
 
         // 判断本次请求是否需要处理
-        Boolean check = check(urls, requestURI);
+        Boolean loop = check(urls, requestURI);
 
         // 如果不需要处理，则直接放行
-        if (check) {
+        if (loop) {
             log.info("本次请求{}不需要处理", requestURI);
             filterChain.doFilter(request, response);
             return;
