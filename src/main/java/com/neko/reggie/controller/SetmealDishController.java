@@ -12,6 +12,8 @@ import com.neko.reggie.service.SetmealService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,6 +46,7 @@ public class SetmealDishController {
      * @return
      */
     @PostMapping
+    @CacheEvict(value = "setmealCache", allEntries = true)
     public R<String> save(@RequestBody SetmealDto setmealDto) {
         log.info("setmealDto = {}", setmealDto);
 
@@ -95,6 +98,7 @@ public class SetmealDishController {
     }
 
     @DeleteMapping
+    @CacheEvict(value = "setmealCache", allEntries = true)
     public R<String> delete(@RequestParam List<Long> ids) {
         log.info("ids = {}", ids);
 
@@ -111,6 +115,7 @@ public class SetmealDishController {
      * @return
      */
     @GetMapping("/list")
+    @Cacheable(value = "setmealCache", key = "#setmeal.categoryId + '_' + #setmeal.status")
     public R<List<Setmeal>> list(Setmeal setmeal) {
         log.info("list setMeal = {}", setmeal);
 
@@ -129,8 +134,9 @@ public class SetmealDishController {
      */
 
     @PostMapping("/status/{status}")
-    public R<String> status(@PathVariable int status, @RequestParam List<Long> ids) {
-        log.info("status = {}, ids = {}", status, ids);
+    @CacheEvict(value = "setmealCache", allEntries = true)
+    public R<String> update(@PathVariable int status, @RequestParam List<Long> ids) {
+        log.info("update = {}, ids = {}", status, ids);
 
         // 设置该套餐的状态信息
         LambdaUpdateWrapper<Setmeal> updateWrapper = new LambdaUpdateWrapper<>();

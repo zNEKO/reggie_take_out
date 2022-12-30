@@ -14,11 +14,12 @@ import com.neko.reggie.service.DishService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -45,6 +46,8 @@ public class DishController {
      * @param pageSize
      * @return
      */
+    @Cacheable(value = "dishCache",
+            key = "#page + '_' + #pageSize + '_' + #name")
     @GetMapping("/page")
     public R<Page<DishDto>> page(int page, int pageSize, String name) {
         log.info("page = {}, pageSize = {}, name = {}", page, pageSize, name);
@@ -98,6 +101,7 @@ public class DishController {
      * @return
      */
     @PostMapping
+    @CacheEvict(value = "dishCache", allEntries = true)
     public R<String> save(@RequestBody DishDto dishDto) {
         log.info("dishDto = {}", dishDto);
 
@@ -117,6 +121,7 @@ public class DishController {
      * @return
      */
     @GetMapping("/{id}")
+    @Cacheable(value = "dishCache", key = "#id")
     public R<DishDto> get(@PathVariable Long id) {
         log.info("dishId = {}", id);
 
@@ -133,6 +138,7 @@ public class DishController {
      * @return
      */
     @PutMapping
+    @CacheEvict(value = "dishCache", allEntries = true)
     public R<String> update(@RequestBody DishDto dishDto) {
         log.info("dishDto = {}", dishDto.toString());
 
@@ -141,8 +147,8 @@ public class DishController {
         //redisTemplate.delete(keys);
 
         // 清理某个分类下的菜品缓存数据
-        String key = "dish_" + dishDto.getCategoryId() + "_" + dishDto.getStatus();
-        redisTemplate.delete(key);
+//        String key = "dish_" + dishDto.getCategoryId() + "_" + dishDto.getStatus();
+//        redisTemplate.delete(key);
 
         dishService.updateWithFlavor(dishDto);
 
@@ -155,6 +161,7 @@ public class DishController {
      * @return
      */
     @GetMapping("/list")
+//    @Cacheable(value = "dishCache", key = "#dish.categoryId + '_' + #dish.update")
     public R<List<DishDto>> list(Dish dish) {
         log.info("dish = {}", dish);
 
@@ -175,7 +182,7 @@ public class DishController {
 
             // 添加查询条件
             queryWrapper.eq(dish.getCategoryId() != null, Dish::getCategoryId, dish.getCategoryId());
-            // 查询起售状态（status = 1）的菜品
+            // 查询起售状态（update = 1）的菜品
             queryWrapper.eq(Dish::getStatus, 1);
 
             // 添加排序条件
@@ -215,6 +222,7 @@ public class DishController {
      * @return
      */
     @DeleteMapping
+    @CacheEvict(value = "dishCache", allEntries = true)
     public R<String> delete(@RequestParam List<Long> ids) {
         log.info("ids = {}", ids);
 
@@ -226,8 +234,9 @@ public class DishController {
     }
 
     @PostMapping("/status/{status}")
+    @CacheEvict(value = "dishCache", allEntries = true)
     public R<String> haltSales(@PathVariable int status, @RequestParam List<Long> ids) {
-        log.info("status = {}, ids = {}", status, ids);
+        log.info("update = {}, ids = {}", status, ids);
 
         for (Long id : ids) {
             // ========================== 方式一 ==================================

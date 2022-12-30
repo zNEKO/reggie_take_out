@@ -148,7 +148,7 @@ public class EmployeeController {
      */
     @PutMapping
     public R<String> update(HttpServletRequest request, @RequestBody Employee employee) {
-        log.info("id={}, status={}", employee.getId(), employee.getStatus());
+        log.info("id={}, update={}", employee.getId(), employee.getStatus());
 
 //        // 设置修改时间
 //        employee.setUpdateTime(LocalDateTime.now());

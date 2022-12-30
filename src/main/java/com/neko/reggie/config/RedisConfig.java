@@ -10,11 +10,13 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @Configuration
 public class RedisConfig extends CachingConfigurerSupport {
     @Bean
-    public RedisTemplate<Object, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
-        RedisTemplate<Object, Object> redisTemplate = new RedisTemplate<>();
-        // 默认的key序列化器为：JdkSerializationRedisSerializer
+    public RedisTemplate<Object,Object> redisTemplate(RedisConnectionFactory connectionFactory){
+        RedisTemplate<Object,Object> redisTemplate = new RedisTemplate<>();
+        // 默认的Key序列化器为: JdkSerializationRedisSerializer
+        // 添加StringRedisSerializer序列化器
         redisTemplate.setKeySerializer(new StringRedisSerializer());
-        redisTemplate.setConnectionFactory(connectionFactory);
+        redisTemplate.setConnectionFactory(connectionFactory) ;
         return redisTemplate;
     }
 }
+
